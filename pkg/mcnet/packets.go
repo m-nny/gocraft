@@ -14,32 +14,32 @@ const (
 
 type HandshakePacket struct {
 	ProtocolVersion VarInt
-	ServerAddress   string
+	ServerAddress   String
 	ServerPort      UShort
 	NextState       VarInt
 }
 
 func readHandshakePacketData(r io.Reader) (*HandshakePacket, error) {
-	protocolVersion, err := ParseVarInt(r)
-	if err != nil {
+	var protocolVersion VarInt
+	if _, err := protocolVersion.ReadFrom(r); err != nil {
 		return nil, err
 	}
 	if protocolVersion != PROTOCOL_VERSION {
 		return nil, fmt.Errorf("provided procotol version is not supported: want %d got %d", PROTOCOL_VERSION, protocolVersion)
 	}
 
-	serverAddress, err := ParseString(r)
-	if err != nil {
+	var serverAddress String
+	if _, err := serverAddress.ReadFrom(r); err != nil {
 		return nil, err
 	}
 
-	serverPort, err := ParseUShort(r)
-	if err != nil {
+	var serverPort UShort
+	if _, err := serverPort.ParseUShort(r); err != nil {
 		return nil, err
 	}
 
-	nextState, err := ParseVarInt(r)
-	if err != nil {
+	var nextState VarInt
+	if _, err := nextState.ReadFrom(r); err != nil {
 		return nil, err
 	}
 
@@ -52,14 +52,14 @@ func readHandshakePacketData(r io.Reader) (*HandshakePacket, error) {
 }
 
 func ReadHandshakePacket(r io.Reader) (*HandshakePacket, error) {
-	packetLen, err := ParseVarInt(r)
-	if err != nil {
+	var packetLen VarInt
+	if _, err := packetLen.ReadFrom(r); err != nil {
 		return nil, err
 	}
 	log.Printf("got package with length: %d", packetLen)
 
-	packetID, err := ParseVarInt(r)
-	if err != nil {
+	var packetID VarInt
+	if _, err := packetID.ReadFrom(r); err != nil {
 		return nil, err
 	}
 	log.Printf("got package with packetId: %d", packetID)
@@ -72,14 +72,14 @@ func ReadHandshakePacket(r io.Reader) (*HandshakePacket, error) {
 }
 
 func ReadGenericPacket(r io.Reader) (any, error) {
-	packetLen, err := ParseVarInt(r)
-	if err != nil {
+	var packetLen VarInt
+	if _, err := packetLen.ReadFrom(r); err != nil {
 		return nil, err
 	}
 	log.Printf("got package with length: %d", packetLen)
 
-	packetID, err := ParseVarInt(r)
-	if err != nil {
+	var packetID VarInt
+	if _, err := packetID.ReadFrom(r); err != nil {
 		return nil, err
 	}
 	log.Printf("got package with packetId: %d", packetID)

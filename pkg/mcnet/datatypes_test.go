@@ -66,7 +66,8 @@ func Test_ParseVarInt(t *testing.T) {
 		name := fmt.Sprintf("%d", test.want)
 		t.Run(name, func(t *testing.T) {
 			r := bytes.NewReader(test.bytes)
-			got, err := mcnet.ParseVarInt(r)
+			var got mcnet.VarInt
+			_, err := got.ReadFrom(r)
 			require.NoError(t, err, "no error")
 			require.Equal(t, test.want, got)
 			require.Equal(t, r.Len(), 0, "no unread bytes")

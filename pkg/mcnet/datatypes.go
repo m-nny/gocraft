@@ -5,57 +5,66 @@ import (
 	"io"
 )
 
-type VarInt = int32
-
 const VARINT_SEGMENT_BITS = 0x7F
 const VARINT_CONTINUE_BIT = 0x80
 
-func ParseVarInt(r io.Reader) (VarInt, error) {
-	value := VarInt(0)
-	pos := 0
+type VarInt int32
 
+func (value *VarInt) ReadFrom(r io.Reader) (int64, error) {
+	pos := 0
+	nn := int64(0)
+	*value = 0
 	for {
 		b := make([]byte, 1)
-		if _, err := r.Read(b); err != nil {
-			return value, err
+		n, err := r.Read(b)
+		nn += int64(n)
+		if err != nil {
+			return nn, err
 		}
-		value |= VarInt(b[0]&VARINT_SEGMENT_BITS) << pos
+		*value |= VarInt(b[0]&VARINT_SEGMENT_BITS) << pos
 		if b[0]&VARINT_CONTINUE_BIT == 0 {
 			break
 		}
 		pos += 7
 		if pos >= 32 {
-			return value, fmt.Errorf("VarInt too big")
+			return nn, fmt.Errorf("VarInt too big")
 		}
 	}
-	return value, nil
+	return nn, nil
 }
 
 const STRING_MAX_LEN = 32767
 
-func ParseString(r io.Reader) (string, error) {
-	n, err := ParseVarInt(r)
-	if err != nil {
-		return "", err
-	}
-	if !(1 <= n && n <= STRING_MAX_LEN) {
-		return "", fmt.Errorf("incorrect string length: want %d max: %d", n, STRING_MAX_LEN)
-	}
+type String string
 
-	s := make([]byte, n)
-	if _, err := io.ReadFull(r, s); err != nil {
-		return "", err
+func (value *String) ReadFrom(r io.Reader) (int64, error) {
+	var strlen VarInt
+	nn, err := strlen.ReadFrom(r)
+	if err != nil {
+		return nn, err
 	}
-	return string(s), nil
+	if !(1 <= strlen && strlen <= STRING_MAX_LEN) {
+		return nn, fmt.Errorf("incorrect string length: want %d max: %d", strlen, STRING_MAX_LEN)
+	}
+	s := make([]byte, strlen)
+	n, err := io.ReadFull(r, s)
+	nn += int64(n)
+	if err != nil {
+		return nn, err
+	}
+	*value = String(s)
+	return nn, nil
 }
 
-type UShort = int16
+type UShort int16
 
-func ParseUShort(r io.Reader) (UShort, error) {
+func (value *UShort) ParseUShort(r io.Reader) (int64, error) {
 	b := make([]byte, 2)
-	if _, err := io.ReadFull(r, b); err != nil {
-		return 0, err
+	n, err := io.ReadFull(r, b)
+	nn := int64(n)
+	if err != nil {
+		return nn, err
 	}
-	value := UShort(b[0])<<8 | UShort(b[1])
-	return value, nil
+	*value = UShort(b[0])<<8 | UShort(b[1])
+	return nn, nil
 }
