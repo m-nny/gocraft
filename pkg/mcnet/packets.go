@@ -3,7 +3,6 @@ package mcnet
 import (
 	"fmt"
 	"io"
-	"log"
 )
 
 const PROTOCOL_VERSION = 766 // minecraft 1.20.6
@@ -15,6 +14,16 @@ type Packet interface {
 
 const (
 	PACKET_ID_HANDSHAKE VarInt = 0x00
+)
+
+type State int
+
+const (
+	STATE_UNKNOWN State = iota
+	STATE_HANDSHAKING
+	STATE_STATUS
+	STATE_LOGIN
+	STATE_TRANSFER
 )
 
 var _ Packet = (*HandshakePacket)(nil)
@@ -48,30 +57,4 @@ func (p *HandshakePacket) ReadFrom(r io.Reader) (int64, error) {
 		return nn, err
 	}
 	return nn, nil
-}
-
-func ReadGenericPacket(r io.Reader) (Packet, error) {
-	var packetLen VarInt
-	if _, err := packetLen.ReadFrom(r); err != nil {
-		return nil, err
-	}
-	log.Printf("got package with length: %d", packetLen)
-
-	var packetID VarInt
-	if _, err := packetID.ReadFrom(r); err != nil {
-		return nil, err
-	}
-	log.Printf("got package with packetId: %d", packetID)
-
-	var packet Packet
-
-	if packetID == PACKET_ID_HANDSHAKE {
-		packet = &HandshakePacket{}
-	} else {
-		return nil, fmt.Errorf("ReadPacket: packetId %d not implemented", packetID)
-	}
-	if _, err := packet.ReadFrom(r); err != nil {
-		return nil, err
-	}
-	return packet, nil
 }

@@ -12,11 +12,13 @@ func Test_ReadGenericPacket(t *testing.T) {
 	testCases := []struct {
 		name        string
 		data        []byte
+		state       mcnet.State
 		wantPackage *mcnet.HandshakePacket
 	}{
 		{
-			name: "HandshakePacket",
-			data: []byte{16, 0, 254, 5, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 31, 144, 2},
+			name:  "HandshakePacket",
+			data:  []byte{16, 0, 254, 5, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 31, 144, 2},
+			state: mcnet.STATE_HANDSHAKING,
 			wantPackage: &mcnet.HandshakePacket{
 				ProtocolVersion: 766,
 				ServerAddress:   "localhost",
@@ -29,7 +31,7 @@ func Test_ReadGenericPacket(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			r := bytes.NewReader(test.data)
-			gotPackage, gotErr := mcnet.ReadGenericPacket(r)
+			gotPackage, gotErr := mcnet.ReadGenericPacket(r, test.state)
 			require.NoError(t, gotErr)
 			require.Equal(t, test.wantPackage, gotPackage)
 		})
