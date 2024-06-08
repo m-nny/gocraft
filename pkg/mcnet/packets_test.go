@@ -31,7 +31,7 @@ func Test_ReadGenericPacket(t *testing.T) {
 			r := bytes.NewReader(test.data)
 			gotPackage, gotErr := mcnet.ReadGenericPacket(r)
 			require.NoError(t, gotErr)
-			require.Equal(t, gotPackage, test.wantPackage)
+			require.Equal(t, test.wantPackage, gotPackage)
 		})
 	}
 }

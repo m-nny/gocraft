@@ -8,9 +8,16 @@ import (
 
 const PROTOCOL_VERSION = 766 // minecraft 1.20.6
 
+type Packet interface {
+	io.ReaderFrom
+	PacketID() VarInt
+}
+
 const (
 	PACKET_ID_HANDSHAKE VarInt = 0x00
 )
+
+var _ Packet = (*HandshakePacket)(nil)
 
 type HandshakePacket struct {
 	ProtocolVersion VarInt
@@ -19,39 +26,31 @@ type HandshakePacket struct {
 	NextState       VarInt
 }
 
-func readHandshakePacketData(r io.Reader) (*HandshakePacket, error) {
-	var protocolVersion VarInt
-	if _, err := protocolVersion.ReadFrom(r); err != nil {
-		return nil, err
-	}
-	if protocolVersion != PROTOCOL_VERSION {
-		return nil, fmt.Errorf("provided procotol version is not supported: want %d got %d", PROTOCOL_VERSION, protocolVersion)
-	}
-
-	var serverAddress String
-	if _, err := serverAddress.ReadFrom(r); err != nil {
-		return nil, err
-	}
-
-	var serverPort UShort
-	if _, err := serverPort.ParseUShort(r); err != nil {
-		return nil, err
-	}
-
-	var nextState VarInt
-	if _, err := nextState.ReadFrom(r); err != nil {
-		return nil, err
-	}
-
-	return &HandshakePacket{
-		ProtocolVersion: protocolVersion,
-		ServerAddress:   serverAddress,
-		ServerPort:      serverPort,
-		NextState:       nextState,
-	}, nil
+func (p *HandshakePacket) PacketID() VarInt {
+	return PACKET_ID_HANDSHAKE
 }
 
-func ReadHandshakePacket(r io.Reader) (*HandshakePacket, error) {
+func (p *HandshakePacket) ReadFrom(r io.Reader) (int64, error) {
+	nn, err := p.ProtocolVersion.ReadFrom(r)
+	if err != nil {
+		return nn, err
+	}
+	if p.ProtocolVersion != PROTOCOL_VERSION {
+		return nn, fmt.Errorf("provided procotol version is not supported: want %d got %d", PROTOCOL_VERSION, p.ProtocolVersion)
+	}
+	if _, err := p.ServerAddress.ReadFrom(r); err != nil {
+		return nn, err
+	}
+	if _, err := p.ServerPort.ReadFrom(r); err != nil {
+		return nn, err
+	}
+	if _, err := p.NextState.ReadFrom(r); err != nil {
+		return nn, err
+	}
+	return nn, nil
+}
+
+func ReadGenericPacket(r io.Reader) (Packet, error) {
 	var packetLen VarInt
 	if _, err := packetLen.ReadFrom(r); err != nil {
 		return nil, err
@@ -64,29 +63,15 @@ func ReadHandshakePacket(r io.Reader) (*HandshakePacket, error) {
 	}
 	log.Printf("got package with packetId: %d", packetID)
 
-	if packetID != PACKET_ID_HANDSHAKE {
-		return nil, fmt.Errorf("expected handshake packet, got packetID: %d", packetID)
-	}
-
-	return readHandshakePacketData(r)
-}
-
-func ReadGenericPacket(r io.Reader) (any, error) {
-	var packetLen VarInt
-	if _, err := packetLen.ReadFrom(r); err != nil {
-		return nil, err
-	}
-	log.Printf("got package with length: %d", packetLen)
-
-	var packetID VarInt
-	if _, err := packetID.ReadFrom(r); err != nil {
-		return nil, err
-	}
-	log.Printf("got package with packetId: %d", packetID)
+	var packet Packet
 
 	if packetID == PACKET_ID_HANDSHAKE {
-		return readHandshakePacketData(r)
+		packet = &HandshakePacket{}
+	} else {
+		return nil, fmt.Errorf("ReadPacket: packetId %d not implemented", packetID)
 	}
-
-	return nil, fmt.Errorf("ReadPacket: packetId %d not implemented", packetID)
+	if _, err := packet.ReadFrom(r); err != nil {
+		return nil, err
+	}
+	return packet, nil
 }
