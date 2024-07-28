@@ -2,6 +2,7 @@ package packets
 
 import (
 	"io"
+	"log"
 
 	"github.com/m-nny/goinit/pkg/datatypes"
 )
@@ -24,11 +25,11 @@ func (p *Packet) Unpack(r io.Reader) error {
 	var packetID datatypes.VarInt
 	n, err := packetID.ReadFrom(r)
 	if err != nil {
-
 		return err
 	}
 	p.ID = packetID
 
+	log.Printf("packetLen: %d n: %d", packetLen, n)
 	dataLen := int64(packetLen) - n
 	// TODO: reuse potentially existing p.data
 	p.Data = make([]byte, dataLen)

@@ -68,9 +68,10 @@ func Test_VarInt_ReadFrom(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			r := bytes.NewReader(test.bytes)
 			var got datatypes.VarInt
-			_, err := got.ReadFrom(r)
+			n, err := got.ReadFrom(r)
 			require.NoError(t, err, "no error")
 			require.Equal(t, test.value, got)
+			require.Equal(t, int64(len(test.bytes)), n)
 			require.Equal(t, r.Len(), 0, "no unread bytes")
 		})
 	}

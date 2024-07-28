@@ -39,7 +39,8 @@ func (s *Server) Start(host string, port uint) error {
 	for {
 		rw, err := listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("%+v", err)
+			return err
 		}
 		conn := s.newConn(rw)
 		s.conns = append(s.conns, conn)
