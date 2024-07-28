@@ -6,12 +6,14 @@ import (
 	"net"
 
 	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
+	mcnet "github.com/m-nny/goinit/pkg/mcnet/net"
+	"github.com/m-nny/goinit/pkg/mcnet/packets"
 )
 
 type Server struct {
 	listener net.Listener
 	conns    []*conn
-	router   *Router
+	router   *mcnet.Router
 }
 
 func NewServer() *Server {
@@ -20,8 +22,9 @@ func NewServer() *Server {
 	}
 }
 
-func getRootRouter() *Router {
-	router := NewRouter()
+func getRootRouter() *mcnet.Router {
+	router := mcnet.NewRouter()
+	router.AddRoute(datatypes.STATE_HANDSHAKING, packets.PACKET_ID_HANDSHAKE, packets.HandshakeHandler)
 	// TODO: add routes
 	return router
 }

@@ -3,8 +3,10 @@ package packets
 import (
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
+	"github.com/m-nny/goinit/pkg/mcnet/net"
 )
 
 var _ Packet = (*HandshakePacket)(nil)
@@ -38,4 +40,14 @@ func (p *HandshakePacket) ReadFrom(r io.Reader) (int64, error) {
 		return nn, err
 	}
 	return nn, nil
+}
+
+func HandshakeHandler(w net.ResponseWriter, req *net.Request) error {
+	packet := &HandshakePacket{}
+	if _, err := packet.ReadFrom(req.Reader); err != nil {
+		return err
+	}
+	log.Printf("Got handshake: %+v\n", packet)
+	w.SetState(datatypes.State(packet.NextState))
+	return nil
 }

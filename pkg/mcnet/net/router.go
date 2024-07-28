@@ -1,4 +1,4 @@
-package mcnet
+package net
 
 import (
 	"fmt"
@@ -6,20 +6,19 @@ import (
 	"log"
 
 	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
-	"github.com/m-nny/goinit/pkg/mcnet/packets"
 )
 
 type Router struct {
-	handlers map[datatypes.State]map[packets.PacketID]Handler
+	handlers map[datatypes.State]map[datatypes.VarInt]Handler
 }
 
 func NewRouter() *Router {
 	return &Router{
-		handlers: make(map[datatypes.State]map[packets.PacketID]Handler),
+		handlers: make(map[datatypes.State]map[datatypes.VarInt]Handler),
 	}
 }
 
-func (r *Router) AddRoute(state datatypes.State, packetID packets.PacketID, handler Handler) error {
+func (r *Router) AddRoute(state datatypes.State, packetID datatypes.VarInt, handler Handler) error {
 	handlers := r.handlers[state]
 	if handlers == nil {
 		handlers = make(map[datatypes.VarInt]Handler)
@@ -33,16 +32,16 @@ func (r *Router) AddRoute(state datatypes.State, packetID packets.PacketID, hand
 }
 
 func (router *Router) Handle(w ResponseWriter, r io.Reader, currentState datatypes.State) error {
-	req := &Request{}
+	req := &Request{Reader: r}
 	if _, err := req.PackgetLen.ReadFrom(r); err != nil {
 		return err
 	}
-	log.Printf("got package with length: %d", req.PackgetLen)
+	log.Printf("[router.Handle] got package with length: %d", req.PackgetLen)
 
 	if _, err := req.PacketID.ReadFrom(r); err != nil {
 		return err
 	}
-	log.Printf("got package with packetId: %d", req.PacketID)
+	log.Printf("[router.Handle] got package with packetId: %d", req.PacketID)
 
 	handler := router.handlers[currentState][req.PacketID]
 	if handler == nil {
@@ -58,9 +57,9 @@ type Handler func(ResponseWriter, *Request) error
 
 type Request struct {
 	PackgetLen   datatypes.VarInt
-	PacketID     packets.PacketID
+	PacketID     datatypes.VarInt
 	CurrentState datatypes.State
-	Payload      []byte
+	Reader       io.Reader
 }
 
 type ResponseWriter interface {

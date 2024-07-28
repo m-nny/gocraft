@@ -7,6 +7,7 @@ import (
 
 const VARINT_SEGMENT_BITS = 0x7F
 const VARINT_CONTINUE_BIT = 0x80
+const VARINT_MAX_LEN = 5
 
 type VarInt int32
 
@@ -53,4 +54,21 @@ func (v VarInt) WriteTo(w io.Writer) (int64, error) {
 		}
 	}
 	return nn, nil
+}
+
+func (v VarInt) Len() int {
+	switch {
+	case v < 0:
+		return VARINT_MAX_LEN
+	case v < 1<<(7*1):
+		return 1
+	case v < 1<<(7*2):
+		return 2
+	case v < 1<<(7*3):
+		return 3
+	case v < 1<<(7*4):
+		return 4
+	default:
+		return VARINT_MAX_LEN
+	}
 }
