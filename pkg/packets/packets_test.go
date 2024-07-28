@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/m-nny/goinit/pkg/mcnet/packets"
+	"github.com/m-nny/goinit/pkg/packets"
 	"github.com/stretchr/testify/require"
 )
 

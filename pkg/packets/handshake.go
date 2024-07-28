@@ -5,8 +5,8 @@ import (
 	"io"
 	"log"
 
-	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
-	"github.com/m-nny/goinit/pkg/mcnet/net"
+	"github.com/m-nny/goinit/pkg/datatypes"
+	"github.com/m-nny/goinit/pkg/mcnet"
 )
 
 var _ Packet = (*HandshakePacket)(nil)
@@ -42,7 +42,7 @@ func (p *HandshakePacket) ReadFrom(r io.Reader) (int64, error) {
 	return nn, nil
 }
 
-func HandshakeHandler(w net.ResponseWriter, req *net.Request) error {
+func HandshakeHandler(w mcnet.ResponseWriter, req *mcnet.Request) error {
 	packet := &HandshakePacket{}
 	if _, err := packet.ReadFrom(req.Reader); err != nil {
 		return err

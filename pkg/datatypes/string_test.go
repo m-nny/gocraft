@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
+	"github.com/m-nny/goinit/pkg/datatypes"
 	"github.com/stretchr/testify/require"
 )
 

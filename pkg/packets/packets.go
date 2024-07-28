@@ -3,7 +3,7 @@ package packets
 import (
 	"io"
 
-	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
+	"github.com/m-nny/goinit/pkg/datatypes"
 )
 
 const MINECRAFT_VERSION = "1.20.6"

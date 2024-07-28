@@ -1,12 +1,12 @@
-package mcnet
+package mcserver
 
 import (
 	"encoding/json"
 	"log"
 	"net"
 
-	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
-	mcnet "github.com/m-nny/goinit/pkg/mcnet/net"
+	"github.com/m-nny/goinit/pkg/datatypes"
+	"github.com/m-nny/goinit/pkg/mcnet"
 )
 
 var _ mcnet.ResponseWriter = (*conn)(nil)
@@ -51,7 +51,7 @@ func (c *conn) SetState(newState datatypes.State) error {
 	return nil
 }
 
-func (c *conn) serve() {
+func (c *conn) Serve() {
 	for {
 		if err := c.router.Handle(c, c.rwc, c.state); err != nil {
 			log.Printf("[conn.serve] err: %v", err)

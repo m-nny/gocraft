@@ -1,11 +1,11 @@
-package net
+package mcnet
 
 import (
 	"fmt"
 	"io"
 	"log"
 
-	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
+	"github.com/m-nny/goinit/pkg/datatypes"
 )
 
 type Router struct {

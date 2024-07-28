@@ -1,13 +1,13 @@
-package mcnet
+package mcserver
 
 import (
 	"fmt"
 	"log"
 	"net"
 
-	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
-	mcnet "github.com/m-nny/goinit/pkg/mcnet/net"
-	"github.com/m-nny/goinit/pkg/mcnet/packets"
+	"github.com/m-nny/goinit/pkg/datatypes"
+	"github.com/m-nny/goinit/pkg/mcnet"
+	"github.com/m-nny/goinit/pkg/packets"
 )
 
 type Server struct {
@@ -43,7 +43,7 @@ func (s *Server) Start(host string, port uint) error {
 		}
 		conn := s.newConn(rw)
 		s.conns = append(s.conns, conn)
-		go conn.serve()
+		go conn.Serve()
 	}
 }
 

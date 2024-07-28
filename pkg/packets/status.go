@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
+	"github.com/m-nny/goinit/pkg/datatypes"
 )
 
 var _ Packet = (*StatusRequestPacket)(nil)
