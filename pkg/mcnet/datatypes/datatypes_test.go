@@ -1,16 +1,16 @@
-package mcnet_test
+package datatypes_test
 
 import (
 	"bytes"
 	"fmt"
 	"testing"
 
-	"github.com/m-nny/goinit/pkg/mcnet"
+	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
 	"github.com/stretchr/testify/require"
 )
 
 var VarIntTestCases = []struct {
-	value mcnet.VarInt
+	value datatypes.VarInt
 	bytes []byte
 }{
 	{
@@ -67,7 +67,7 @@ func Test_VarInt_ReadFrom(t *testing.T) {
 		name := fmt.Sprintf("%d", test.value)
 		t.Run(name, func(t *testing.T) {
 			r := bytes.NewReader(test.bytes)
-			var got mcnet.VarInt
+			var got datatypes.VarInt
 			_, err := got.ReadFrom(r)
 			require.NoError(t, err, "no error")
 			require.Equal(t, test.value, got)
@@ -92,7 +92,7 @@ func Test_VarInt_WriteTo(t *testing.T) {
 }
 
 func Test_String(t *testing.T) {
-	testCases := []mcnet.String{
+	testCases := []datatypes.String{
 		"localhost",
 		"abc",
 		"1",
@@ -103,7 +103,7 @@ func Test_String(t *testing.T) {
 			_, err := test.WriteTo(buf)
 			require.NoError(t, err)
 
-			var got mcnet.String
+			var got datatypes.String
 
 			_, err = got.ReadFrom(buf)
 			require.NoError(t, err)

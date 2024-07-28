@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+
+	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
 )
 
 const MINECRAFT_VERSION = "1.20.6"
@@ -14,8 +16,8 @@ type Packet interface {
 }
 
 const (
-	PACKET_ID_HANDSHAKE VarInt = 0x00
-	PACKET_ID_STATUS    VarInt = 0x00
+	PACKET_ID_HANDSHAKE datatypes.VarInt = 0x00
+	PACKET_ID_STATUS    datatypes.VarInt = 0x00
 )
 
 type State int
@@ -31,10 +33,10 @@ const (
 var _ Packet = (*HandshakePacket)(nil)
 
 type HandshakePacket struct {
-	ProtocolVersion VarInt
-	ServerAddress   String
-	ServerPort      UShort
-	NextState       VarInt
+	ProtocolVersion datatypes.VarInt
+	ServerAddress   datatypes.String
+	ServerPort      datatypes.UShort
+	NextState       datatypes.VarInt
 }
 
 func (p *HandshakePacket) ReadFrom(r io.Reader) (int64, error) {
@@ -103,6 +105,6 @@ func (p *StatusResponsePacket) WriteTo(w io.Writer) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	s := String(str)
+	s := datatypes.String(str)
 	return s.WriteTo(w)
 }

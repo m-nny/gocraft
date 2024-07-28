@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"net"
+
+	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
 )
 
 type Client struct {
@@ -57,13 +59,13 @@ func (c *Client) Welcome() error {
 }
 
 func ReadGenericPacket(r io.Reader, state State) (Packet, error) {
-	var packetLen VarInt
+	var packetLen datatypes.VarInt
 	if _, err := packetLen.ReadFrom(r); err != nil {
 		return nil, err
 	}
 	log.Printf("got package with length: %d", packetLen)
 
-	var packetID VarInt
+	var packetID datatypes.VarInt
 	if _, err := packetID.ReadFrom(r); err != nil {
 		return nil, err
 	}

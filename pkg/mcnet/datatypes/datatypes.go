@@ -1,4 +1,4 @@
-package mcnet
+package datatypes
 
 import (
 	"fmt"

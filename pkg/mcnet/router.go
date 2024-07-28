@@ -4,22 +4,24 @@ import (
 	"fmt"
 	"io"
 	"log"
+
+	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
 )
 
 type Router struct {
-	handlers map[State]map[VarInt]Handler
+	handlers map[State]map[datatypes.VarInt]Handler
 }
 
 func NewRouter() *Router {
 	return &Router{
-		handlers: make(map[State]map[VarInt]Handler),
+		handlers: make(map[State]map[datatypes.VarInt]Handler),
 	}
 }
 
-func (r *Router) AddRoute(state State, packetID VarInt, handler Handler) error {
+func (r *Router) AddRoute(state State, packetID datatypes.VarInt, handler Handler) error {
 	handlers := r.handlers[state]
 	if handlers == nil {
-		handlers = make(map[VarInt]Handler)
+		handlers = make(map[datatypes.VarInt]Handler)
 	}
 	if _, ok := handlers[packetID]; ok {
 		return fmt.Errorf("handler for state: %+v packetdID: %+v is already registered", state, packetID)
@@ -54,14 +56,14 @@ func (router *Router) Handle(w ResponseWriter, r io.Reader, currentState State) 
 type Handler func(ResponseWriter, *Request) error
 
 type Request struct {
-	PackgetLen   VarInt
-	PacketID     VarInt
+	PackgetLen   datatypes.VarInt
+	PacketID     datatypes.VarInt
 	CurrentState State
 	Payload      []byte
 }
 
 type ResponseWriter interface {
-	WriteJson(packetID VarInt, payload any) error
-	WriteBytes(packetID VarInt, payload []byte) error
+	WriteJson(packetID datatypes.VarInt, payload any) error
+	WriteBytes(packetID datatypes.VarInt, payload []byte) error
 	SetState(newState State) error
 }
