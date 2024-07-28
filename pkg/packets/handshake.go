@@ -1,15 +1,13 @@
 package packets
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
 
 	"github.com/m-nny/goinit/pkg/datatypes"
-	"github.com/m-nny/goinit/pkg/mcnet"
 )
-
-var _ Packet = (*HandshakePacket)(nil)
 
 const (
 	PACKET_ID_HANDSHAKE PacketID = 0x00
@@ -42,9 +40,9 @@ func (p *HandshakePacket) ReadFrom(r io.Reader) (int64, error) {
 	return nn, nil
 }
 
-func HandshakeHandler(w mcnet.ResponseWriter, req *mcnet.Request) error {
+func HandshakeHandler(w ConnState, p *Packet) error {
 	packet := &HandshakePacket{}
-	if _, err := packet.ReadFrom(req.Reader); err != nil {
+	if _, err := packet.ReadFrom(bytes.NewReader(p.Data)); err != nil {
 		return err
 	}
 	log.Printf("Got handshake: %+v\n", packet)

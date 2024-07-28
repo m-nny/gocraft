@@ -7,8 +7,6 @@ import (
 	"github.com/m-nny/goinit/pkg/datatypes"
 )
 
-var _ Packet = (*StatusRequestPacket)(nil)
-
 const (
 	PACKET_ID_STATUS PacketID = 0x00
 )

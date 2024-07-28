@@ -12,7 +12,7 @@ func Test_Handshake(t *testing.T) {
 	testCases := []struct {
 		name        string
 		data        []byte
-		wantPackage packets.Packet
+		wantPackage any
 	}{
 		{
 			name: "HandshakePacket",

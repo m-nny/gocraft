@@ -3,9 +3,9 @@ package mcnet
 import (
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/m-nny/goinit/pkg/datatypes"
+	"github.com/m-nny/goinit/pkg/packets"
 )
 
 type Router struct {
@@ -31,39 +31,20 @@ func (r *Router) AddRoute(state datatypes.State, packetID datatypes.VarInt, hand
 	return nil
 }
 
-func (router *Router) Handle(w ResponseWriter, r io.Reader, currentState datatypes.State) error {
-	req := &Request{Reader: r}
-	if _, err := req.PackgetLen.ReadFrom(r); err != nil {
+func (router *Router) Handle(cs packets.ConnState, rw io.ReadWriter) error {
+	packet := &packets.Packet{}
+	if err := packet.Unpack(rw); err != nil {
 		return err
 	}
-	log.Printf("[router.Handle] got package with length: %d", req.PackgetLen)
 
-	if _, err := req.PacketID.ReadFrom(r); err != nil {
-		return err
-	}
-	log.Printf("[router.Handle] got package with packetId: %d", req.PacketID)
-
-	handler := router.handlers[currentState][req.PacketID]
+	handler := router.handlers[cs.GetState()][packet.ID]
 	if handler == nil {
-		return fmt.Errorf("handler for req: %+v is not registered", req)
+		return fmt.Errorf("handler for req: %+v %+v is not registered", cs.GetState(), packet.ID)
 	}
-	if err := handler(w, req); err != nil {
-		return fmt.Errorf("error while handling req: %+v err: %w", req, err)
+	if err := handler(cs, packet); err != nil {
+		return fmt.Errorf("error while handling req: %+v %+v err: %w", cs.GetState(), packet.ID, err)
 	}
 	return nil
 }
 
-type Handler func(ResponseWriter, *Request) error
-
-type Request struct {
-	PackgetLen   datatypes.VarInt
-	PacketID     datatypes.VarInt
-	CurrentState datatypes.State
-	Reader       io.Reader
-}
-
-type ResponseWriter interface {
-	WriteJson(packetID datatypes.VarInt, payload any) error
-	WriteBytes(packetID datatypes.VarInt, payload []byte) error
-	SetState(newState datatypes.State) error
-}
+type Handler func(packets.ConnState, *packets.Packet) error
