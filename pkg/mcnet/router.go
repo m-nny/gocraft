@@ -6,19 +6,20 @@ import (
 	"log"
 
 	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
+	"github.com/m-nny/goinit/pkg/mcnet/packets"
 )
 
 type Router struct {
-	handlers map[datatypes.State]map[datatypes.VarInt]Handler
+	handlers map[datatypes.State]map[packets.PacketID]Handler
 }
 
 func NewRouter() *Router {
 	return &Router{
-		handlers: make(map[datatypes.State]map[datatypes.VarInt]Handler),
+		handlers: make(map[datatypes.State]map[packets.PacketID]Handler),
 	}
 }
 
-func (r *Router) AddRoute(state datatypes.State, packetID datatypes.VarInt, handler Handler) error {
+func (r *Router) AddRoute(state datatypes.State, packetID packets.PacketID, handler Handler) error {
 	handlers := r.handlers[state]
 	if handlers == nil {
 		handlers = make(map[datatypes.VarInt]Handler)
@@ -57,7 +58,7 @@ type Handler func(ResponseWriter, *Request) error
 
 type Request struct {
 	PackgetLen   datatypes.VarInt
-	PacketID     datatypes.PacketID
+	PacketID     packets.PacketID
 	CurrentState datatypes.State
 	Payload      []byte
 }

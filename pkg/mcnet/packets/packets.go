@@ -1,8 +1,6 @@
 package packets
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/m-nny/goinit/pkg/mcnet/datatypes"
@@ -11,85 +9,8 @@ import (
 const MINECRAFT_VERSION = "1.20.6"
 const PROTOCOL_VERSION = 766 // minecraft 1.20.6
 
+type PacketID = datatypes.VarInt
+
 type Packet interface {
 	io.ReaderFrom
-}
-
-var _ Packet = (*HandshakePacket)(nil)
-
-type HandshakePacket struct {
-	ProtocolVersion datatypes.VarInt
-	ServerAddress   datatypes.String
-	ServerPort      datatypes.UShort
-	NextState       datatypes.VarInt
-}
-
-func (p *HandshakePacket) ReadFrom(r io.Reader) (int64, error) {
-	nn, err := p.ProtocolVersion.ReadFrom(r)
-	if err != nil {
-		return nn, err
-	}
-	if p.ProtocolVersion != PROTOCOL_VERSION {
-		return nn, fmt.Errorf("provided procotol version is not supported: want %d got %d", PROTOCOL_VERSION, p.ProtocolVersion)
-	}
-	if _, err := p.ServerAddress.ReadFrom(r); err != nil {
-		return nn, err
-	}
-	if _, err := p.ServerPort.ReadFrom(r); err != nil {
-		return nn, err
-	}
-	if _, err := p.NextState.ReadFrom(r); err != nil {
-		return nn, err
-	}
-	return nn, nil
-}
-
-var _ Packet = (*StatusRequestPacket)(nil)
-
-type StatusRequestPacket struct{}
-
-func (p *StatusRequestPacket) ReadFrom(r io.Reader) (int64, error) {
-	return 0, nil
-}
-
-type StatusResponsePacket struct {
-	Version struct {
-		Name     string
-		Protocol int
-	}
-	// Players struct {
-	// 	Max    int `json:",omitempty"`
-	// 	Online int `json:",omitempty"`
-	// 	Sample []struct {
-	// 		Name string
-	// 		Id   string
-	// 	} `json:",omitempty"`
-	// } `json:",omitempty"`
-	// Description struct {
-	// 	Text string
-	// } `json:",omitempty"`
-	// FavIcon            string `json:",omitempty"`
-	// EnforcesSecureChat bool   `json:",omitempty"`
-	// PreviousChat       bool   `json:",omitempty"`
-}
-
-func NewStatusResponsePacket() *StatusResponsePacket {
-	return &StatusResponsePacket{
-		Version: struct {
-			Name     string
-			Protocol int
-		}{
-			Name:     MINECRAFT_VERSION,
-			Protocol: PROTOCOL_VERSION,
-		},
-	}
-}
-
-func (p *StatusResponsePacket) WriteTo(w io.Writer) (int64, error) {
-	str, err := json.Marshal(p)
-	if err != nil {
-		return 0, err
-	}
-	s := datatypes.String(str)
-	return s.WriteTo(w)
 }
