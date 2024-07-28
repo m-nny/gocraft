@@ -11,13 +11,13 @@ import (
 
 type Client struct {
 	conn  net.Conn
-	state State
+	state datatypes.State
 }
 
 func NewClient(conn net.Conn) *Client {
 	return &Client{
 		conn:  conn,
-		state: STATE_HANDSHAKING,
+		state: datatypes.STATE_HANDSHAKING,
 	}
 }
 
@@ -26,7 +26,7 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) Welcome() error {
-	if c.state != STATE_HANDSHAKING {
+	if c.state != datatypes.STATE_HANDSHAKING {
 		return fmt.Errorf("client is not in handshaking state")
 	}
 
@@ -42,11 +42,11 @@ func (c *Client) Welcome() error {
 	log.Printf("got handshake packet: %+v", handshake)
 
 	if handshake.NextState == 1 {
-		c.state = STATE_STATUS
+		c.state = datatypes.STATE_STATUS
 	} else if handshake.NextState == 2 {
-		c.state = STATE_LOGIN
+		c.state = datatypes.STATE_LOGIN
 	} else if handshake.NextState == 3 {
-		c.state = STATE_TRANSFER
+		c.state = datatypes.STATE_TRANSFER
 	}
 
 	packet, err = ReadGenericPacket(c.conn, c.state)
@@ -58,7 +58,7 @@ func (c *Client) Welcome() error {
 	return nil
 }
 
-func ReadGenericPacket(r io.Reader, state State) (Packet, error) {
+func ReadGenericPacket(r io.Reader, state datatypes.State) (Packet, error) {
 	var packetLen datatypes.VarInt
 	if _, err := packetLen.ReadFrom(r); err != nil {
 		return nil, err
@@ -72,12 +72,12 @@ func ReadGenericPacket(r io.Reader, state State) (Packet, error) {
 	log.Printf("got package with packetId: %d", packetID)
 
 	var packet Packet
-	if state == STATE_HANDSHAKING {
-		if packetID == PACKET_ID_HANDSHAKE {
+	if state == datatypes.STATE_HANDSHAKING {
+		if packetID == datatypes.PACKET_ID_HANDSHAKE {
 			packet = &HandshakePacket{}
 		}
-	} else if state == STATE_STATUS {
-		if packetID == PACKET_ID_STATUS {
+	} else if state == datatypes.STATE_STATUS {
+		if packetID == datatypes.PACKET_ID_STATUS {
 			packet = &StatusRequestPacket{}
 		}
 	}

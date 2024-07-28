@@ -9,16 +9,16 @@ import (
 )
 
 type Router struct {
-	handlers map[State]map[datatypes.VarInt]Handler
+	handlers map[datatypes.State]map[datatypes.VarInt]Handler
 }
 
 func NewRouter() *Router {
 	return &Router{
-		handlers: make(map[State]map[datatypes.VarInt]Handler),
+		handlers: make(map[datatypes.State]map[datatypes.VarInt]Handler),
 	}
 }
 
-func (r *Router) AddRoute(state State, packetID datatypes.VarInt, handler Handler) error {
+func (r *Router) AddRoute(state datatypes.State, packetID datatypes.VarInt, handler Handler) error {
 	handlers := r.handlers[state]
 	if handlers == nil {
 		handlers = make(map[datatypes.VarInt]Handler)
@@ -31,7 +31,7 @@ func (r *Router) AddRoute(state State, packetID datatypes.VarInt, handler Handle
 	return nil
 }
 
-func (router *Router) Handle(w ResponseWriter, r io.Reader, currentState State) error {
+func (router *Router) Handle(w ResponseWriter, r io.Reader, currentState datatypes.State) error {
 	req := &Request{}
 	if _, err := req.PackgetLen.ReadFrom(r); err != nil {
 		return err
@@ -57,13 +57,13 @@ type Handler func(ResponseWriter, *Request) error
 
 type Request struct {
 	PackgetLen   datatypes.VarInt
-	PacketID     datatypes.VarInt
-	CurrentState State
+	PacketID     datatypes.PacketID
+	CurrentState datatypes.State
 	Payload      []byte
 }
 
 type ResponseWriter interface {
 	WriteJson(packetID datatypes.VarInt, payload any) error
 	WriteBytes(packetID datatypes.VarInt, payload []byte) error
-	SetState(newState State) error
+	SetState(newState datatypes.State) error
 }
