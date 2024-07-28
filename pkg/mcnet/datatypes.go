@@ -14,8 +14,8 @@ func (value *VarInt) ReadFrom(r io.Reader) (int64, error) {
 	pos := 0
 	nn := int64(0)
 	*value = 0
+	b := make([]byte, 1)
 	for {
-		b := make([]byte, 1)
 		n, err := r.Read(b)
 		nn += int64(n)
 		if err != nil {
@@ -28,6 +28,28 @@ func (value *VarInt) ReadFrom(r io.Reader) (int64, error) {
 		pos += 7
 		if pos >= 32 {
 			return nn, fmt.Errorf("VarInt too big")
+		}
+	}
+	return nn, nil
+}
+
+func (v VarInt) WriteTo(w io.Writer) (int64, error) {
+	nn := int64(0)
+	value := uint32(v)
+	for {
+		b := byte(value) & VARINT_SEGMENT_BITS
+		value >>= 7
+		if value != 0 {
+			b |= VARINT_CONTINUE_BIT
+		}
+
+		n, err := w.Write([]byte{b})
+		nn += int64(n)
+		if err != nil {
+			return nn, err
+		}
+		if value == 0 {
+			break
 		}
 	}
 	return nn, nil
@@ -53,6 +75,24 @@ func (value *String) ReadFrom(r io.Reader) (int64, error) {
 		return nn, err
 	}
 	*value = String(s)
+	return nn, nil
+}
+
+func (value *String) WriteTo(w io.Writer) (int64, error) {
+	strlen := VarInt(len(*value))
+	if !(1 <= strlen && strlen <= STRING_MAX_LEN) {
+		return 0, fmt.Errorf("incorrect string length: want %d max: %d", strlen, STRING_MAX_LEN)
+	}
+	nn, err := strlen.WriteTo(w)
+	if err != nil {
+		return nn, err
+	}
+
+	n, err := w.Write([]byte(*value))
+	nn += int64(n)
+	if err != nil {
+		return nn, err
+	}
 	return nn, nil
 }
 

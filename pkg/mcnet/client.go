@@ -74,6 +74,10 @@ func ReadGenericPacket(r io.Reader, state State) (Packet, error) {
 		if packetID == PACKET_ID_HANDSHAKE {
 			packet = &HandshakePacket{}
 		}
+	} else if state == STATE_STATUS {
+		if packetID == PACKET_ID_STATUS {
+			packet = &StatusRequestPacket{}
+		}
 	}
 	if packet == nil {
 		return nil, fmt.Errorf("ReadPacket: packetId %d with state %d not implemented", packetID, state)
