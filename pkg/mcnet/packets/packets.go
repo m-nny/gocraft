@@ -1,4 +1,4 @@
-package mcnet
+package packets
 
 import (
 	"encoding/json"
