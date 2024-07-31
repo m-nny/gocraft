@@ -39,14 +39,14 @@ func (c *conn) Serve() {
 		return
 	}
 	log.Printf("got handshake: %+v", handshake)
-	switch nextStatus := State(handshake.NextState); nextStatus {
+	switch nextState := State(handshake.NextState); nextState {
 	case STATE_STATUS:
 		if err := c.handleStatus(); err != nil {
-			log.Printf("error handling status %d: %v", nextStatus, err)
+			log.Printf("error handling status %d: %v", nextState, err)
 			return
 		}
 	default:
-		log.Printf("status %d not implemented", nextStatus)
+		log.Printf("[conn.Serve] nextState %d not implemented", nextState)
 	}
 }
 
@@ -66,13 +66,15 @@ func (c *conn) handleStatus() error {
 			if err := c.Respond(response); err != nil {
 				return err
 			}
-			// } else if p.ID == packets.PACKET_ID_STATUS {
-			// 	return fmt.Errorf("not implemented")
+		} else if p.ID == packets.PACKET_ID_PING {
+			if err := c.Respond(p); err != nil {
+				return err
+			}
 		} else {
 			return fmt.Errorf("packetID %d not implemented", p.ID)
 		}
 	}
-	return fmt.Errorf("not implemented")
+	return nil
 }
 
 func (c *conn) Respond(packet *packets.Packet) error {
