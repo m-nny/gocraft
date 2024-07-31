@@ -2,10 +2,17 @@ package packets_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
+	"github.com/m-nny/goinit/pkg/datatypes"
 	"github.com/m-nny/goinit/pkg/packets"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	PACKET_HANDSHAKE_DATA = []byte{254, 5, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 31, 144, 1}
+	PACKET_HANDSHAKE_RAW  = append([]byte{16, 0}, PACKET_HANDSHAKE_DATA...)
 )
 
 func Test_Packet_Unpack(t *testing.T) {
@@ -16,11 +23,8 @@ func Test_Packet_Unpack(t *testing.T) {
 	}{
 		{
 			name:  "Handshake",
-			input: []byte{16, 0, 254, 5, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 31, 144, 1},
-			want: &packets.Packet{
-				ID:   0,
-				Data: []byte{254, 5, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 31, 144, 1},
-			},
+			input: PACKET_HANDSHAKE_RAW,
+			want:  &packets.Packet{ID: 0, Data: PACKET_HANDSHAKE_DATA},
 		},
 		{
 			name:  "Status request",
@@ -39,4 +43,17 @@ func Test_Packet_Unpack(t *testing.T) {
 			require.Equal(t, test.want, got)
 		})
 	}
+}
+
+func Test_Packet_Scan(t *testing.T) {
+	p := &packets.Packet{ID: 0, Data: PACKET_HANDSHAKE_DATA}
+	var (
+		ProtocolVersion datatypes.VarInt
+		ServerAddress   datatypes.String
+		ServerPort      datatypes.UShort
+		NextState       datatypes.VarInt
+	)
+	err := p.Scan(&ProtocolVersion, &ServerAddress, &ServerPort, &NextState)
+	require.NoError(t, err)
+	fmt.Printf("%v %v %v %v\n", ProtocolVersion, ServerAddress, ServerPort, NextState)
 }

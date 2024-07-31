@@ -1,6 +1,7 @@
 package packets
 
 import (
+	"bytes"
 	"io"
 	"log"
 
@@ -29,7 +30,6 @@ func (p *Packet) Unpack(r io.Reader) error {
 	}
 	p.ID = packetID
 
-	log.Printf("packetLen: %d n: %d", packetLen, n)
 	dataLen := int64(packetLen) - n
 	// TODO: reuse potentially existing p.data
 	p.Data = make([]byte, dataLen)
@@ -53,10 +53,35 @@ func (p *Packet) Pack(w io.Writer) error {
 		return err
 	}
 
+	log.Printf("[packet.Pack] wrote packet %+v |%s|", p, string(p.Data))
+
 	return nil
 }
 
-type ConnState interface {
-	SetState(newState datatypes.State) error
-	GetState() datatypes.State
+func (p *Packet) Scan(fields ...datatypes.FieldDecoder) error {
+	r := bytes.NewReader(p.Data)
+	for _, field := range fields {
+		if _, err := field.ReadFrom(r); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func BuildPacket(ID datatypes.VarInt, fields ...datatypes.FieldEncoder) (*Packet, error) {
+	buf := &bytes.Buffer{}
+	for _, field := range fields {
+		if _, err := field.WriteTo(buf); err != nil {
+			return nil, err
+		}
+	}
+	return &Packet{ID: ID, Data: buf.Bytes()}, nil
+}
+
+func New(r io.Reader) (*Packet, error) {
+	p := &Packet{}
+	if err := p.Unpack(r); err != nil {
+		return nil, err
+	}
+	return p, nil
 }

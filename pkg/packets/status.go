@@ -11,13 +11,7 @@ const (
 	PACKET_ID_STATUS PacketID = 0x00
 )
 
-type StatusRequestPacket struct{}
-
-func (p *StatusRequestPacket) ReadFrom(r io.Reader) (int64, error) {
-	return 0, nil
-}
-
-type StatusResponsePacket struct {
+type StatusResponse struct {
 	Version struct {
 		Name     string
 		Protocol int
@@ -38,8 +32,8 @@ type StatusResponsePacket struct {
 	// PreviousChat       bool   `json:",omitempty"`
 }
 
-func NewStatusResponsePacket() *StatusResponsePacket {
-	return &StatusResponsePacket{
+func NewStatusResponsePacket() (*Packet, error) {
+	response := &StatusResponse{
 		Version: struct {
 			Name     string
 			Protocol int
@@ -48,9 +42,16 @@ func NewStatusResponsePacket() *StatusResponsePacket {
 			Protocol: PROTOCOL_VERSION,
 		},
 	}
+	json, err := json.Marshal(response)
+	if err != nil {
+		return nil, err
+	}
+	payload := datatypes.String(json)
+
+	return BuildPacket(PACKET_ID_STATUS, &payload)
 }
 
-func (p *StatusResponsePacket) WriteTo(w io.Writer) (int64, error) {
+func (p *StatusResponse) WriteTo(w io.Writer) (int64, error) {
 	str, err := json.Marshal(p)
 	if err != nil {
 		return 0, err

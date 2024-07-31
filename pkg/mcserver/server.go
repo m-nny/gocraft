@@ -4,29 +4,15 @@ import (
 	"fmt"
 	"log"
 	"net"
-
-	"github.com/m-nny/goinit/pkg/datatypes"
-	"github.com/m-nny/goinit/pkg/mcnet"
-	"github.com/m-nny/goinit/pkg/packets"
 )
 
 type Server struct {
 	listener net.Listener
 	conns    []*conn
-	router   *mcnet.Router
 }
 
 func NewServer() *Server {
-	return &Server{
-		router: getRootRouter(),
-	}
-}
-
-func getRootRouter() *mcnet.Router {
-	router := mcnet.NewRouter()
-	router.AddRoute(datatypes.STATE_HANDSHAKING, packets.PACKET_ID_HANDSHAKE, packets.HandshakeHandler)
-	// TODO: add routes
-	return router
+	return &Server{}
 }
 
 func (s *Server) Start(host string, port uint) error {
@@ -58,9 +44,5 @@ func (s *Server) Close() {
 }
 
 func (s *Server) newConn(rwc net.Conn) *conn {
-	return &conn{
-		rwc:    rwc,
-		state:  datatypes.STATE_HANDSHAKING,
-		router: s.router,
-	}
+	return &conn{rwc: rwc}
 }
